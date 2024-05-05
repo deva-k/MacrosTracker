@@ -38,7 +38,9 @@ def get_unit_p1(enter_food_p1):
 
 def add_macros_p1():
     try:
-        if st.session_state.quantity_p1 == 0:
+        if st.session_state.enter_food_p1 == None:
+            st.session_state.food_added_p1 = 3
+        elif st.session_state.quantity_p1 == 0:
             st.session_state.food_added_p1 = 2
         else:
             if st.session_state.meal_checked_p1:
@@ -66,17 +68,17 @@ def add_macros_p1():
                             macros_arr[6],
                             st.session_state.meal_num_p1,
                             st.session_state.user])
-        st.session_state.food_added_p1 = 1
-        st.session_state.quantity_p1 = 1
-        st.session_state.meal_num_p1 = 1
-        # update the meal per day df with the latest
-        # read the sheet with users and passwords
-        mpd_df = st.session_state.conn.read(worksheet="macros_per_day",ttl=0)
-        # Drop rows where all values are NaN
-        mpd_df = mpd_df.dropna(how='all')
-        # Drop columns where all values are NaN
-        mpd_df = mpd_df.dropna(how='all', axis = 1)
-        st.session_state.macros_per_day_df = mpd_df[mpd_df['user_name'] == st.session_state.user].reset_index(drop = True)
+            st.session_state.food_added_p1 = 1
+            st.session_state.quantity_p1 = 0
+            st.session_state.meal_num_p1 = 1
+            # update the meal per day df with the latest
+            # read the sheet with users and passwords
+            mpd_df = st.session_state.conn.read(worksheet="macros_per_day",ttl=0)
+            # Drop rows where all values are NaN
+            mpd_df = mpd_df.dropna(how='all')
+            # Drop columns where all values are NaN
+            mpd_df = mpd_df.dropna(how='all', axis = 1)
+            st.session_state.macros_per_day_df = mpd_df[mpd_df['user_name'] == st.session_state.user].reset_index(drop = True)
     except Exception as e:
         print(e)
         st.toast('Unable to add food item!', icon='🚨')
@@ -189,7 +191,11 @@ def add_meal_p3():
                             totals_df.calories.iloc[0],
                             st.session_state.user,
                             json.dumps(datetime.datetime.now(),default = str).strip('"')])
-        st.toast('Food item successfully added to our database!', icon='✅')
+        st.toast('Meal added to our database successfully!', icon='✅')
+        meal_prep_df = st.session_state.conn.read(worksheet="meal_prep", ttl = "5s")
+        meal_prep_df = meal_prep_df.dropna(how='all')
+        st.session_state.meal_prep_df = meal_prep_df[meal_prep_df['user_name'] == st.session_state.user].dropna(how='all', axis = 1)
+
 
 
 def cal_macros_totals(df, per_day = True):
@@ -211,7 +217,6 @@ def gen_macros_per_meal_chart(df):
         df = df[df['date_time'].str[:10] == str(datetime.date.today())][['meal_number','protein', 'fat', 'carbohydrates', 'fibre', 'sugar', 'salt','calories']]
         # Group by Date and sum the nutrient columns
         df_grouped = df.groupby('meal_number').sum().reset_index()
-        print(df_grouped)
         # Melt the dataframe to have 'Date' as x-axis, 'value' as y-axis, and 'variable' as color
         df_melted = df_grouped[['meal_number','protein', 'fat', 'carbohydrates', 'fibre', 'sugar', 'salt']].melt(id_vars=['meal_number'], var_name='Nutrient', value_name='Value')
         # Plot using Plotly Express

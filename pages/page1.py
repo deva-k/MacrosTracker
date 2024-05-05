@@ -12,8 +12,11 @@ with st.sidebar:
     if not st.session_state.macros_per_food_df.empty:
         meal_checked = st.checkbox("Add meal", key = 'meal_checked_p1')
         if meal_checked:
-            options_df = st.session_state.meal_prep_df.sort_values(by = 'date_time', ascending = False)
-            options = options_df['meal_name'] + '_' + options_df['date_time'].str[:10]
+            if st.session_state.meal_prep_df.empty:
+                options = []
+            else:
+                options_df = st.session_state.meal_prep_df.sort_values(by = 'date_time', ascending = False)
+                options = options_df['meal_name'] + '_' + options_df['date_time'].str[:10]
             enter_food_p1 = st.selectbox(label = 'Enter food', options = options,key = 'enter_food_p1')
             st.sidebar.number_input(label = 'Weight in grams',key = "quantity_p1",min_value = 0.0,max_value = 1000.0,step = 5.0,format="%.2f")
         else:
@@ -21,11 +24,11 @@ with st.sidebar:
             enter_food_p1 = st.selectbox(label = 'Enter food', options = options,key = 'enter_food_p1')
             unit = get_unit_p1(enter_food_p1)
             if unit == 'weight':
-                st.sidebar.number_input(label = 'Weight in grams',key = "quantity_p1",min_value = 1.0,max_value = 1000.0,step = 5.0,format="%.2f")
+                st.sidebar.number_input(label = 'Weight in grams',key = "quantity_p1",min_value = 0.0,max_value = 1000.0,step = 5.0,format="%.2f")
             elif unit == 'quantity':
-                st.sidebar.number_input(label = 'Quantity in unit',key = "quantity_p1",min_value = 1,max_value = 100,step = 1)
+                st.sidebar.number_input(label = 'Quantity in unit',key = "quantity_p1",min_value = 0,max_value = 100,step = 1)
             elif unit == 'volume':
-                st.sidebar.number_input(label = 'Quantity in ml',key = "quantity_p1",min_value = 1.0,max_value = 1000.0,step = 1.0,format="%.2f")
+                st.sidebar.number_input(label = 'Quantity in ml',key = "quantity_p1",min_value = 0.0,max_value = 1000.0,step = 1.0,format="%.2f")
             else:
                 pass
         col1, col2 = st.columns(2)
@@ -38,6 +41,9 @@ with st.sidebar:
             st.session_state.food_added_p1 = 0
         elif st.session_state.food_added_p1 == 2:
             st.error('Enter quantity of the food item!', icon='🚨')
+            st.session_state.food_added_p1 = 0
+        elif st.session_state.food_added_p1 == 3:
+            st.error('Enter name of the food!', icon='🚨')
             st.session_state.food_added_p1 = 0
         else:
             pass
