@@ -1,7 +1,6 @@
 import streamlit as st
 from navigation import make_sidebar
 from utils import *
-from streamlit_timeline import st_timeline
 
 make_sidebar()
 
